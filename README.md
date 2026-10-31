@@ -63,3 +63,38 @@ flowchart TD
     E:::decisionStyle
 
     classDef decisionStyle fill:#f9f,stroke:#333,stroke-width:2px;
+```
+## User Sign Up Sequence Diagram
+
+The following sequence diagram illustrates the Streamy user registration process, including synchronous communication, asynchronous event publishing, input validation, and alternative execution paths.
+
+```mermaid
+---
+title: User Sign Up Flow
+---
+sequenceDiagram
+    autonumber
+
+    actor Browser
+    participant Signup as Sign Up Service
+    participant Users as User Service
+    participant Kafka
+
+    links Users: {"Repository": "https://example.com/user-service"}
+
+    Browser->>+Signup: GET /sign_up
+    Signup-->>-Browser: 200 OK (HTML page)
+
+    Browser->>+Signup: POST /sign_up
+    Signup->>Signup: Validate input
+
+    alt invalid input
+        Signup-->>Browser: Error
+    else valid input
+        Signup->>+Users: POST /users
+        Users--)Kafka: User Created Event Published
+        Note left of Kafka: Other services take action based on this event
+        Users-->>-Signup: 201 Created (User)
+        Signup-->>-Browser: 301 Redirect (Login page)
+    end
+```

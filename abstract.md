@@ -35,4 +35,32 @@ distinct name values and release timestamps) for both discrete feature films and
 episodic series on the platform.
 2. **Genre:** The master classification category module (e.g., Sci-Fi, Drama,
 Documentary) mapping the taxonomy layer of the application.
+
+
+
+## Streamy UML Domain Model
+
+The following class diagram illustrates the Streamy domain model, including inheritance, relationships, cardinality, and external navigation.
+
+```mermaid
+---
+title: Streamy Domain Model
+---
+classDiagram
+    Title: "  "
+    link Title "https://example.com/titles" _blank
+
+    TVShow --|> Title
+    Short --|> Title
+    Film --|> Title
+
+    Title "1..*" -- "1..*" Genre: is associated with
+    Title "1" *-- "0..*" Season: has
+    Title "1" *-- "0..*" Review: has
+    Title "0..*" o-- "1..*" Actor: features
+
+    Viewer "0..*" --> "0..*" Title: watches
+    Season "1" *-- "0..*" Review: has
+    Season "1" *-- "1..*" Episode: contains
+    Episode "1" *-- "0..*" Review: has
 ```

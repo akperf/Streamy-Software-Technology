@@ -131,3 +131,54 @@ flowchart TD
     class LS focusSystem
     class TS,RS,SS supportingSystem
 ```
+
+
+## Native Mermaid Rendering and Diagram Orientation
+
+This section demonstrates native Mermaid rendering and orientation controls for different documentation layouts.
+
+### 1. Left-to-Right Architecture Flowchart
+
+```mermaid
+flowchart LR
+    Client[Web Client] -->|HTTPS| API[API Gateway]
+    API --> Service[Listing Service]
+    Service --> DB[(Database)]
+```
+
+
+## Static Architecture Diagram Export
+
+The C4 System Context diagram is also available as a static PNG
+for platforms without native Mermaid support.
+
+![Architecture Diagram](./images/architecture.png)
+
+
+<!--
+Editable Diagram Source (HTML-escaped arrows):
+
+```mermaid
+flowchart TD
+    User["Premium Member<br/>[Person]<br/><br/>A user of the website who has<br/>purchased a subscription"]
+
+    LS["Listings Service<br/>[Software System]<br/><br/>Serves web pages displaying title<br/>listings to the end user"]
+
+    TS["Title Service<br/>[Software System]"]
+    RS["Review Service<br/>[Software System]"]
+    SS["Search Service<br/>[Software System]"]
+
+    User -- "Views titles, searches titles and reviews titles using" --&gt; LS
+    LS -- "Retrieves title information from" --&gt; TS
+    LS -- "Retrieves from and submits reviews to" --&gt; RS
+    LS -- "Searches for titles using" --&gt; SS
+
+    classDef person fill:#08427b,stroke:#052e56,color:#ffffff
+    classDef focusSystem fill:#1168bd,stroke:#0b4884,color:#ffffff
+    classDef supportingSystem fill:#666666,stroke:#0b4884,color:#ffffff
+
+    class User person
+    class LS focusSystem
+    class TS,RS,SS supportingSystem
+```
+-->

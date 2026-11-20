@@ -28,6 +28,15 @@ jobs:
         run: |
           npm install -g @mermaid-js/mermaid-cli
 
+          cat > /tmp/puppeteer-config.json <<'JSON'
+          {
+            "args": [
+              "--no-sandbox",
+              "--disable-setuid-sandbox"
+            ]
+          }
+          JSON
+
           python3 - <<'PY'
           import re
           import subprocess
@@ -45,6 +54,7 @@ jobs:
 
           for md_file in docs.rglob("*.md"):
               content = md_file.read_text()
+
               prefix = str(
                   md_file.relative_to(docs).with_suffix("")
               ).replace(os.sep, "-")
@@ -58,10 +68,18 @@ jobs:
                   source = Path("/tmp") / f"diagram-{prefix}-{number}.mmd"
                   output = assets / f"{prefix}-{number}.svg"
 
-                  source.write_text(match.group(1))
+                  source.write_text(match.group(1).strip() + "\n")
 
                   subprocess.run(
-                      ["mmdc", "-i", str(source), "-o", str(output)],
+                      [
+                          "mmdc",
+                          "--puppeteerConfigFile",
+                          "/tmp/puppeteer-config.json",
+                          "--input",
+                          str(source),
+                          "--output",
+                          str(output)
+                      ],
                       check=True
                   )
 
@@ -73,6 +91,7 @@ jobs:
               if count[0]:
                   md_file.write_text(updated)
                   print(f"Rendered {count[0]} diagrams in {md_file}")
+
           PY
 
       - name: Setup Pages

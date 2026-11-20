@@ -1,0 +1,103 @@
+
+name: Convert And Deploy Mermaid Diagrams
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate Mermaid Diagrams
+        run: |
+          npm install -g @mermaid-js/mermaid-cli
+
+          python3 - <<'PY'
+          import re
+          import subprocess
+          from pathlib import Path
+          import os
+
+          docs = Path("docs")
+          assets = docs / "assets"
+          assets.mkdir(parents=True, exist_ok=True)
+
+          pattern = re.compile(
+              r"```mermaid\s*\n(.*?)```",
+              re.DOTALL
+          )
+
+          for md_file in docs.rglob("*.md"):
+              content = md_file.read_text()
+              prefix = str(
+                  md_file.relative_to(docs).with_suffix("")
+              ).replace(os.sep, "-")
+
+              count = [0]
+
+              def convert(match):
+                  count[0] += 1
+                  number = count[0]
+
+                  source = Path("/tmp") / f"diagram-{prefix}-{number}.mmd"
+                  output = assets / f"{prefix}-{number}.svg"
+
+                  source.write_text(match.group(1))
+
+                  subprocess.run(
+                      ["mmdc", "-i", str(source), "-o", str(output)],
+                      check=True
+                  )
+
+                  link = os.path.relpath(output, md_file.parent)
+                  return f"![Mermaid diagram]({link})"
+
+              updated = pattern.sub(convert, content)
+
+              if count[0]:
+                  md_file.write_text(updated)
+                  print(f"Rendered {count[0]} diagrams in {md_file}")
+          PY
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+          destination: ./_site
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
